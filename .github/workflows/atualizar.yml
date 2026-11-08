@@ -1,0 +1,22 @@
+name: Atualizar notícias
+
+on:
+  schedule:
+    - cron: '0 10 * * *'   # 07:00 em Brasília (UTC-3)
+    - cron: '0 22 * * *'   # 19:00 em Brasília
+  workflow_dispatch:         # botão "Run workflow" para rodar na hora
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node atualizar.mjs
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
