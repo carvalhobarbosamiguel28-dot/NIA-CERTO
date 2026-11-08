@@ -1,0 +1,9 @@
+{
+  "name": "nia-app",
+  "version": "1.0.0",
+  "description": "Nia PWA",
+  "main": "index.js",
+  "dependencies": {
+    "@google/genai": "^0.1.1"
+  }
+}
