@@ -2,7 +2,6 @@
 const { GoogleGenAI } = require("@google/genai");
 
 exports.handler = async function(event, context) {
-  // Pega a chave secreta que vamos salvar no painel do Netlify
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
@@ -13,26 +12,37 @@ exports.handler = async function(event, context) {
   }
 
   try {
-    // Inicializa o SDK oficial do Google Gen AI
     const ai = new GoogleGenAI({ apiKey: apiKey });
     
-    // Pega o prompt enviado pelo seu site (se houver)
     let promptUser = "Resuma as principais notícias de Inteligência Artificial de hoje focando em ChatGPT e Claude.";
     if (event.body) {
-      const data = JSON.parse(event.body);
-      if (data.prompt) promptUser = data.prompt;
+      try {
+        const data = JSON.parse(event.body);
+        if (data.prompt) promptUser = data.prompt;
+      } catch (e) {
+        // Ignora erro de parse se o body vier vazio ou mal formatado
+      }
     }
 
-    // Chama o modelo Gemini Flash (rápido e gratuito)
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash',
       contents: promptUser,
     });
+
+    // Pega o texto da resposta de forma ultra segura para o SDK novo
+    let textResult = "";
+    if (typeof response.text === 'string') {
+      textResult = response.text;
+    } else if (response.candidates && response.candidates[0]?.content?.parts[0]?.text) {
+      textResult = response.candidates[0].content.parts[0].text;
+    } else {
+      textResult = JSON.stringify(response); // Para debug caso venha em formato diferente
+    }
 
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ result: response.text }),
+      body: JSON.stringify({ result: textResult }),
     };
 
   } catch (error) {
