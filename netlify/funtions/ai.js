@@ -25,7 +25,7 @@ exports.handler = async function(event, context) {
 
     // Chama o modelo Gemini Flash (rápido e gratuito)
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.8-flash',
       contents: promptUser,
     });
 
