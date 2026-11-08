@@ -7,6 +7,7 @@ exports.handler = async function(event, context) {
   if (!apiKey) {
     return {
       statusCode: 500,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ error: "Chave da API não configurada no Netlify." }),
     };
   }
@@ -20,7 +21,7 @@ exports.handler = async function(event, context) {
         const data = JSON.parse(event.body);
         if (data.prompt) promptUser = data.prompt;
       } catch (e) {
-        // Ignora erro de parse se o body vier vazio ou mal formatado
+        // Usa o prompt padrão se o body falhar
       }
     }
 
@@ -29,15 +30,10 @@ exports.handler = async function(event, context) {
       contents: promptUser,
     });
 
-    // Pega o texto da resposta de forma ultra segura para o SDK novo
-    let textResult = "";
-    if (typeof response.text === 'string') {
-      textResult = response.text;
-    } else if (response.candidates && response.candidates[0]?.content?.parts[0]?.text) {
-      textResult = response.candidates[0].content.parts[0].text;
-    } else {
-      textResult = JSON.stringify(response); // Para debug caso venha em formato diferente
-    }
+    // Pega o texto da resposta garantindo que nunca vá vazio
+    const textResult = response.text || 
+                       response.candidates?.[0]?.content?.parts?.[0]?.text || 
+                       "Nenhuma resposta gerada pela IA.";
 
     return {
       statusCode: 200,
@@ -48,6 +44,7 @@ exports.handler = async function(event, context) {
   } catch (error) {
     return {
       statusCode: 500,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ error: error.message }),
     };
   }
